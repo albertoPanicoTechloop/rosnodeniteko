@@ -1,0 +1,52 @@
+{
+    "name": "ROS Node Niteko",
+    "features": {
+      "ghcr.io/devcontainers/features/azure-cli:1": {},
+      "ghcr.io/devcontainers/features/go:1": {},
+      "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+      "ghcr.io/devcontainers/features/git:1": {},
+      "ghcr.io/devcontainers/features/github-cli:1": {},
+      "ghcr.io/devcontainers-contrib/features/apt-packages:1": {},
+      "ghcr.io/devcontainers-contrib/features/apt-get-packages:1": {},
+      "ghcr.io/devcontainers-contrib/features/curl-apt-get:1": {},
+      "ghcr.io/devcontainers-contrib/features/fkill:2": {},
+      "ghcr.io/devcontainers-contrib/features/gitsign-credential-cache:1": {},
+      "ghcr.io/devcontainers-contrib/features/http-server:1": {},
+      "ghcr.io/jungaretti/features/make:1": {},
+      "ghcr.io/devcontainers/features/python:1": {}
+    },
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-python.python",
+          "ms-azuretools.vscode-docker",
+          "ms-vscode-remote.remote-containers",
+          "ms-vscode.makefile-tools",
+          "dbaeumer.vscode-eslint",
+          "esbenp.prettier-vscode",
+          "ms-vscode.azurecli",
+          "GitHub.vscode-pull-request-github",
+          "eamodio.gitlens"
+        ],
+        "settings": {
+          "terminal.integrated.shell.linux": "/bin/bash"
+        }
+      },
+      "codespaces": {
+        "openFiles": [
+          "README.md"
+        ]
+      }
+    },
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "devcontainer",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "shutdownAction": "stopCompose",
+    //"postCreateCommand": "docker-compose -f docker-compose.yml -f docker-compose.lowcodeetl.yml -f docker-compose.timescaledb.yml -f docker-compose.tdengine.yml -f docker-compose.mongodb.yml -f docker-compose.ekuiperetl.yml up -d",
+    "forwardPorts": [3000],
+    "hostRequirements": {
+      "cpus": 2,
+      "memory": "8gb",
+      "storage": "32gb"
+    }
+  }
