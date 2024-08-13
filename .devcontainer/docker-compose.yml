@@ -3,7 +3,6 @@ services:
       build:
         context: .
         dockerfile: Dockerfile
-      image: mcr.microsoft.com/devcontainers/base:ubuntu
       volumes:
         - ../..:/workspaces:cached
       command: sleep infinity
