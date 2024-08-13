@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>KOBOTEQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .card {
+            background-color: #2b2b2b;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card-header,
+        .card-footer {
+            background-color: #1a1a1a;
+            border-bottom: 1px solid #444;
+        }
+
+        .btn {
+            border: none;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.3s;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .btn-large {
+            font-size: 1rem;
+            padding: 8px 16px;
+        }
+
+        .btn-small {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn.start {
+            background-color: #28a745;
+        }
+
+        .btn.start:hover {
+            background-color: #218838;
+        }
+
+        .btn.pause {
+            background-color: #ffc107;
+        }
+
+        .btn.pause:hover {
+            background-color: #e0a800;
+        }
+
+        .btn.stop {
+            background-color: #dc3545;
+        }
+
+        .btn.stop:hover {
+            background-color: #c82333;
+        }
+
+        .btn-blue {
+            background-color: #007bff;
+        }
+
+        .btn-blue:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-red {
+            background-color: #dc3545;
+        }
+
+        .btn-red:hover {
+            background-color: #c82333;
+        }
+
+        .btn-grey {
+            background-color: #6c757d;
+        }
+
+        .btn-grey:hover {
+            background-color: #5a6268;
+        }
+
+        .led {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+            border: 2px solid #ffffff;
+        }
+
+        .led.green {
+            background-color: #28a745;
+            box-shadow: 0 0 5px #28a745;
+        }
+
+        .led.red {
+            background-color: #dc3545;
+            box-shadow: 0 0 5px #dc3545;
+        }
+
+        .led.grey {
+            background-color: #6c757d;
+            box-shadow: 0 0 5px #6c757d;
+        }
+
+        .form-control-large {
+            font-size: 1rem;
+        }
+
+        .form-control-small {
+            font-size: 0.8rem;
+        }
+
+        .icon {
+            margin-right: 5px;
+        }
+
+        .speed-display {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+    </style>
+    <script>
+        function updateECULed() {
+            fetch('/ecu_status')
+                .then(response => response.json())
+                .then(data => {
+                    const ecuLed = document.getElementById('ecuLed');
+                    if (data.active) {
+                        ecuLed.classList.remove('red', 'grey');
+                        ecuLed.classList.add('green');
+                    } else {
+                        ecuLed.classList.remove('green', 'grey');
+                        ecuLed.classList.add('red');
+                    }
+                })
+                .catch(error => console.error('Error fetching ECU status:', error));
+        }
+
+        function updateLinearSpeed() {
+            fetch('/linear_speed')
+                .then(response => response.json())
+                .then(data => {
+                    const speedDisplay = document.getElementById('linearSpeed');
+                    speedDisplay.textContent = data.x.toFixed(2) + ' km/h';
+                })
+                .catch(error => console.error('Error fetching linear speed:', error));
+        }
+
+        function updateIMUData() {
+        fetch('/imu_data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('roll').textContent = data.roll.toFixed(2);
+                document.getElementById('pitch').textContent = data.pitch.toFixed(2);
+                document.getElementById('yaw').textContent = data.yaw.toFixed(2);
+            })
+            .catch(error => console.error('Error fetching IMU data:', error));
+        }
+
+        function restartAutopilot(event) {
+            event.preventDefault();
+            const button = document.getElementById('restartButton');
+            button.classList.remove('btn-blue');
+            button.classList.add('btn-grey');
+            button.disabled = true;
+
+            fetch('/restart_autopilot', {
+                method: 'POST'
+            }).then(response => {
+                if (response.ok) {
+                    button.classList.remove('btn-grey');
+                    button.classList.add('btn-blue');
+                    button.disabled = false;
+                } else {
+                    console.error('Failed to restart autopilot');
+                }
+            }).catch(error => {
+                console.error('Error restarting autopilot:', error);
+            });
+        }
+
+        setInterval(updateECULed, 1000);  // Poll every second
+        setInterval(updateLinearSpeed, 1000);  // Poll every second
+        setInterval(updateIMUData, 1000);  // Poll every second
+    </script>
+</head>
+
+<body onload="document.getElementById('ecuLed').classList.add('grey');">
+    <div class="container">
+        <h1>KOBOTEQ</h1>
+        <div class="row mb-1">
+            <div class="col-12 col-md-4 offset-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <strong>IMU Data</strong>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="imu-display">
+                            <strong>Roll: <span id="roll">0.00</span>°</strong><br>
+                            <strong>Pitch: <span id="pitch">0.00</span>°</strong><br>
+                            <strong>Yaw: <span id="yaw">0.00</span>°</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <strong>Mode Control</strong>
+                    </div>
+                    <div class="card-body text-center">
+                        <form action="/semiauto" method="post">
+                            <button id="semiautoButton" class="btn btn-small {% if button_state.semiauto_state %}btn-red{% else %}btn-blue{% endif %} btn-block" type="submit">
+                                <i class="fas fa-robot icon"></i>SemiAuto
+                            </button>
+                        </form>
+                        <div class="mt-2">
+                            <label>ECU Status:</label>
+                            <span id="ecuLed" class="led grey"></span>
+                        </div>
+                        <div class="speed-display">
+                            <strong>Linear Speed: <span id="linearSpeed">0.00 km/h</span></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <strong>Set Desired Turns</strong>
+                    </div>
+                    <div class="card-body text-center">
+                        <form action="/set_des_turns" method="post" class="form-inline justify-content-center">
+                            <input type="number" name="des_turns" class="form-control form-control-small w-75" placeholder="Turns" required>
+                            <button class="btn-blue btn-small btn btn-block mt-2" type="submit"><i class="fas fa-sync-alt icon"></i>Set</button>
+                        </form>
+                        <div class="param-display mt-2">
+                            <strong>Current: {{ des_turns }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <form action="/start" method="post">
+                            <button id="startButton" class="btn btn-large start btn-block" type="submit" {% if button_state.start_disabled %}disabled{% endif %}><i class="fas fa-play icon"></i>START</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <form action="/pause" method="post">
+                            <button id="pauseButton" class="btn btn-large pause btn-block" type="submit" {% if button_state.pause_disabled %}disabled{% endif %}><i class="fas fa-pause icon"></i>PAUSE</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <form action="/stop" method="post">
+                            <button id="stopButton" class="btn btn-large stop btn-block" type="submit" {% if button_state.stop_disabled %}disabled{% endif %}><i class="fas fa-stop icon"></i>STOP</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <strong>Path Control</strong>
+                    </div>
+                    <div class="card-body text-center">
+                        <form action="/set_path_name" method="post">
+                            <input type="text" name="path_name" class="form-control form-control-small mb-2" placeholder="Path Name" required>
+                            <button id="setPathNameButton" class="btn-blue btn-small btn btn-block" type="submit"><i class="fas fa-map-signs icon"></i>Set Path</button>
+                        </form>
+                        <form action="/record_path" method="post" class="mt-2">
+                            <button id="recordPathButton" class="btn btn-small {% if button_state.record_path_state == 'RECORD PATH' %}btn-blue{% else %}btn-red{% endif %} btn-block" type="submit" {% if not button_state.path_name_set %}disabled{% endif %}>
+                                <i class="fas fa-record-vinyl icon"></i>{{ button_state.record_path_state }}
+                            </button>
+                        </form>
+                        <form action="/load_path" method="post" class="mt-2">
+                            <select name="path_load_location" class="form-control form-control-small mb-2">
+                                <option value="" disabled selected>Select Path File</option>
+                                {% for path in paths %}
+                                <option value="{{ path }}">{{ path }}</option>
+                                {% endfor %}
+                            </select>
+                            <button id="loadPathButton" class="btn btn-small {% if button_state.load_path_state == 'START PUBLISH' %}btn-blue{% else %}btn-red{% endif %} btn-block" type="submit">
+                                <i class="fas fa-upload icon"></i>{{ button_state.load_path_state }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <strong>Misc Controls</strong>
+                    </div>
+                    <div class="card-body text-center">
+                        <form action="/canon" method="post">
+                            <button id="canonButton" class="btn-blue btn-small btn btn-block" type="submit"><i class="fas fa-plug icon"></i>CANON</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <form action="/canoff" method="post">
+                            <button id="canoffButton" class="btn btn-small btn-red btn-block" type="submit"><i class="fas fa-power-off icon"></i>CANOFF</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <form onsubmit="restartAutopilot(event)">
+                            <button id="restartButton" class="btn-blue btn-small btn btn-block" type="submit"><i class="fas fa-redo icon"></i>Restart Autopilot</button>
+                        </form>
+                        <form action="/autospray" method="post" class="mt-2">
+                            <button id="autosprayButton" class="btn btn-small {% if button_state.autospray_state %}btn-red{% else %}btn-blue{% endif %} btn-block" type="submit">
+                                <i class="fas fa-spray-can icon"></i>{% if button_state.autospray_state %}Deactivate Autospray{% else %}Activate Autospray{% endif %}
+                            </button>
+                        </form>
+                        <form action="/tracker_only" method="post" class="mt-2">
+                            <button id="trackerOnlyButton" class="btn btn-small {% if button_state.tracker_only_state %}btn-red{% else %}btn-blue{% endif %} btn-block" type="submit">
+                                <i class="fas fa-crosshairs icon"></i>{% if button_state.tracker_only_state %}Disengage Tracker{% else %}Engage Tracker{% endif %}
+                            </button>
+                        </form>
+                        <form action="/border_guard" method="post" class="mt-2">
+                            <button id="borderGuardButton" class="btn btn-small {% if button_state.border_guard_state %}btn-blue{% else %}btn-red{% endif %} btn-block" type="submit">
+                                <i class="fas fa-shield-alt icon"></i>{% if button_state.border_guard_state %}Activate Border Guard{% else %}Deactivate Border Guard{% endif %}
+                            </button>
+                        </form>
+                        <form action="/forward_anticoll" method="post" class="mt-2">
+                            <button id="antiCollButton" class="btn btn-small {% if button_state.forward_anticoll_state %}btn-blue{% else %}btn-red{% endif %} btn-block" type="submit">
+                                <i class="fas fa-shield-alt icon"></i>{% if button_state.forward_anticoll_state %}Activate Anti Coll{% else %}Deactivate Anti Coll{% endif %}
+                            </button>
+                        </form>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+

@@ -1,0 +1,14 @@
+{
+  "name": "Your Website Name",
+  "short_name": "Short Name",
+  "icons": [
+    {
+      "src": "logoApp.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone"
+}
+
