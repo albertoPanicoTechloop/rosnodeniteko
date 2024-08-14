@@ -1,4 +1,4 @@
-FROM osrf/ros:noetic-desktop-full-focal
+FROM osrf/ros:jazzy-desktop-full
  
 
 # Add ubuntu user with same UID and GID as your host system, if it doesn't already exist
